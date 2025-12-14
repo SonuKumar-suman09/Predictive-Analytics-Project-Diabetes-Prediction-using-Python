@@ -1,0 +1,110 @@
+#---------------------------DIABETES PREDICTION-------------------------
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.naive_bayes import GaussianNB
+
+# 1. LOAD DATA
+df = pd.read_csv("C:\\Users\\sonuk\\OneDrive\\Documents\\Desktop\\diabetes.csv")   
+print("Dataset shape:", df.shape)
+print(df.head())
+
+# 2.PREPROCESSING STEPS
+
+# Replace 0 (invalid medical values) with NaN
+cols_missing = ["Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI"]
+df[cols_missing] = df[cols_missing].replace(0, np.nan)
+
+# Fill missing values with median
+df[cols_missing] = df[cols_missing].fillna(df[cols_missing].median())
+
+# Features & target
+X = df.drop(columns=["Outcome"])
+y = df["Outcome"]
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42
+)
+
+# Scale features
+scaler = StandardScaler()
+X_train_s = scaler.fit_transform(X_train)
+X_test_s = scaler.transform(X_test)
+
+# 3. TRAIN MODELS
+lr = LogisticRegression(max_iter=1000)
+knn = KNeighborsClassifier()
+dt = DecisionTreeClassifier(random_state=42)
+nb = GaussianNB()
+
+lr.fit(X_train_s, y_train)
+knn.fit(X_train_s, y_train)
+dt.fit(X_train_s, y_train)
+nb.fit(X_train_s, y_train)
+
+# 4. PREDICTIONS
+pred_lr = lr.predict(X_test_s)
+pred_knn = knn.predict(X_test_s)
+pred_dt = dt.predict(X_test_s)
+pred_nb = nb.predict(X_test_s)
+
+# 5. EVALUATION FUNCTION
+def evaluate(name, actual, pred):
+    print(f"\n----- {name} -----")
+    print("Accuracy :", accuracy_score(actual, pred))
+    print("Precision:", precision_score(actual, pred))
+    print("Recall   :", recall_score(actual, pred))
+    print("F1 Score :", f1_score(actual, pred))
+    print("Confusion Matrix:\n", confusion_matrix(actual, pred))
+    print(classification_report(actual, pred))
+
+
+evaluate("Logistic Regression", y_test, pred_lr)
+evaluate("KNN", y_test, pred_knn)
+evaluate("Decision Tree", y_test, pred_dt)
+evaluate("Gaussian NB", y_test, pred_nb)
+
+
+# 6. VISUALIZATIONS
+
+# Outcome distribution
+df["Outcome"].value_counts().plot(kind="bar")
+plt.title("Outcome Distribution (0 = No Diabetes, 1 = Diabetes)")
+plt.xlabel("Outcome")
+plt.ylabel("Count")
+plt.show()
+
+# Histogram of key features
+df["Glucose"].plot(kind="hist", bins=30, title="Distribution Analysis of Medical Features")
+plt.show()
+
+df["BMI"].plot(kind="hist", bins=30, title="BMI Distribution")
+plt.show()
+
+# Boxplot comparing diabetes vs non-diabetes
+df.boxplot(column="Glucose", by="Outcome")
+plt.title("Comparing diabetic vs non-diabetic")
+plt.suptitle("Boxplots")
+plt.show()
+
+# Correlation heatmap
+plt.imshow(df.corr(), cmap="coolwarm", interpolation="nearest")
+plt.colorbar()
+plt.title("Correlation Heatmap")
+plt.xticks(range(len(df.columns)), df.columns, rotation=90)
+plt.yticks(range(len(df.columns)), df.columns)
+plt.show()
+
+# Scatter plot (Glucose vs BMI)
+plt.scatter(df["Glucose"], df["BMI"], c=df["Outcome"], cmap="coolwarm")
+plt.xlabel("Glucose")
+plt.ylabel("BMI")
+plt.title("Glucose vs BMI (colored by Outcome)")
+plt.show()
