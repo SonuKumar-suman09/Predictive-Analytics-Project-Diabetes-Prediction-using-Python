@@ -1,4 +1,4 @@
-🩺 Predictive Analytics – Diabetes Prediction using Python
+🩺 Diabetes Prediction using Python
 
 This project focuses on Predictive Analysis for Diabetes Prediction using the Pima Indians Diabetes Dataset. The goal is to analyze healthcare data and build machine learning models that can classify whether a patient is diabetic or non-diabetic based on medical attributes.
 
